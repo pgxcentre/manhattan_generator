@@ -792,8 +792,8 @@ def parseArgs():
     # The significant threshold
     group.add_argument("--significant-threshold", type=float, default=3.0,
                        metavar="FLOAT",
-                       help=("The significant threshold for linkage "
-                             "[Default: %(default).1f]"))
+                       help=("The significant threshold for linkage or "
+                             "association [Default: %(default).1f]"))
 
     # The annotation flag
     group.add_argument("--no-annotation", action="store_true",
