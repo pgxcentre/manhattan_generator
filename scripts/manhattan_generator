@@ -146,19 +146,19 @@ def main():
     two_point = None
     if args.twopoint is not None:
         two_point = read_input_file(args.twopoint, args.phys_pos_flag,
-                                    args.use_pvalues_flag)
+                                    args.use_pvalues_flag, args)
 
     # Reading the input file for multipoint linkage
     multi_point = None
     if args.multipoint is not None:
         multi_point = read_input_file(args.multipoint, args.phys_pos_flag,
-                                      args.use_pvalues_flag)
+                                      args.use_pvalues_flag, args)
 
     # Creating the plots
     create_manhattan_plot(two_point, multi_point, args)
 
 
-def read_input_file(inFileName, use_physical_positions, use_pvalues):
+def read_input_file(inFileName, use_physical_positions, use_pvalues, options):
     """Reads input file.
     
     :param inFileName: the name of the input file
@@ -207,15 +207,15 @@ def read_input_file(inFileName, use_physical_positions, use_pvalues):
         if line_nb == 0:
             # This is the header
             headerIndex = dict([(colName, i) for i, colName in enumerate(row)])
-            colNames = ["chr", "name"]
+            colNames = [options.col_chr, options.col_name]
             if use_physical_positions:
-                colNames.append("pos")
+                colNames.append(options.col_pos)
             else:
-                colNames.append("cm")
+                colNames.append(options.col_cm)
             if use_pvalues:
-                colNames.append("p_value")
+                colNames.append(options.col_pvalue)
             else:
-                colNames.append("lod")
+                colNames.append(options.col_lod)
             for colName in colNames:
                 if colName not in headerIndex:
                     msg = "%(inFileName)s: no column named " \
@@ -224,29 +224,30 @@ def read_input_file(inFileName, use_physical_positions, use_pvalues):
             continue
 
         # Getting the chromosome
-        chromosome = encode_chr(row[headerIndex["chr"]])
+        chromosome = encode_chr(row[headerIndex[options.col_chr]])
 
         # Getting the position
         position = None
         try:
             position = map([float, int][use_physical_positions],
-                           [row[headerIndex[["cm", "pos"][use_physical_positions]]]])[0]
+                           [row[headerIndex[[options.col_cm,
+                                             options.col_pos][use_physical_positions]]]])[0]
         except ValueError:
-            msg = "%s: invalid position in %s" % (row[headerIndex[["cm", "pos"][use_physical_positions]]],
+            msg = "%s: invalid position in %s" % (row[headerIndex[[options.col_cm, options.col_pos][use_physical_positions]]],
                                                   inFileName)
             raise ProgramError(msg)
 
         # Getting the confidence
         confidence = None
         try:
-            confidence = float(row[headerIndex[["lod", "p_value"][use_pvalues]]])
+            confidence = float(row[headerIndex[[options.col_lod, options.col_pvalue][use_pvalues]]])
         except ValueError:
-            msg = "%s: invalid confidence in %s" % (row[headerIndex[["lod", "p_value"][use_pvalues]]],
+            msg = "%s: invalid confidence in %s" % (row[headerIndex[[options.col_lod, options.col_pvalue][use_pvalues]]],
                                                     inFileName)
             raise ProgramError(msg)
 
         # Getting the marker name
-        name = row[headerIndex["name"]]
+        name = row[headerIndex[options.col_name]]
 
         # Appending the data
         data.append((chromosome, position, name, confidence))
@@ -333,10 +334,10 @@ def create_manhattan_plot(twopoint, multipoint, args):
         conf_max.append(npy.max(multipoint["conf"]))
     conf_min = min(conf_min)
     conf_max = max(conf_max)
-    if args.max_y_limit is not None:
-        conf_max = args.max_y_limit
-    if args.min_y_limit is not None:
-        conf_min = args.min_y_limit
+    if args.max_ylim is not None:
+        conf_max = args.max_ylim
+    if args.min_ylim is not None:
+        conf_min = args.min_ylim
     if args.no_negative_values or args.use_pvalues_flag:
         conf_min = 0.0
         
@@ -539,10 +540,10 @@ def checkArgs(args):
     :class:`sys.stderr` and the program exists with code 1.
 
     """
-    if (args.max_y_limit is not None) and (args.min_y_limit is not None):
-        if args.max_y_limit <= args.min_y_limit:
+    if (args.max_ylim is not None) and (args.min_ylim is not None):
+        if args.max_ylim <= args.min_ylim:
             msg = "Y max limit (%f) is <= Y min limit " \
-                  "(%f)" % (args.max_y_limit, args.min_y_limit)
+                  "(%f)" % (args.max_ylim, args.min_ylim)
             raise ProgramError(msg)
 
     # The type of graph
@@ -633,6 +634,7 @@ def parseArgs():
 
     """
 
+    # The input options
     group = parser.add_argument_group("Input Options",
                                       ("Options for the input file(s) (name of "
                                        "the file, type of graph, etc.)."))
@@ -645,6 +647,42 @@ def parseArgs():
     group.add_argument("--multipoint", type=str, metavar="FILE",
                        help="The input FILE for multipoint linkage.")
 
+    # The column options
+    group = parser.add_argument_group("Column Options",
+                                      "The name of the different options.")
+
+    # The chromosome column
+    group.add_argument("--col-chr", type=str, metavar="COL", default="chr",
+                       help=("The name of the column containing the "
+                             "chromosomes [Default: %(default)s]."))
+
+    # The marker name column
+    group.add_argument("--col-name", type=str, metavar="COL", default="name",
+                       help=("The name of the column containing the marker "
+                             "names [Default: %(default)s]."))
+
+    # The marker position column
+    group.add_argument("--col-pos", type=str, metavar="COL", default="pos",
+                       help=("The name of the column containing the marker "
+                             "positions [Default: %(default)s]."))
+
+    # The marker cM column
+    group.add_argument("--col-cm", type=str, metavar="COL", default="cm",
+                       help=("The name of the column containing the marker "
+                             "cM [Default: %(default)s]."))
+
+    # The marker p value
+    group.add_argument("--col-pvalue", type=str, metavar="COL",
+                       default="p_value",
+                       help=("The name of the column containing the marker "
+                             "p values [Default: %(default)s]"))
+
+    # The marker lod score
+    group.add_argument("--col-lod", type=str, metavar="COL", default="lod",
+                       help=("The name of the column containing the marker "
+                             "LOD score [Default: %(default)s]"))
+
+    # The output options
     group = parser.add_argument_group("Graph Output Options",
                                       ("Options for the ouput file (name of "
                                        "the file, type of graph, etc.)."))
@@ -670,8 +708,9 @@ def parseArgs():
                        help=("The quality of the output (in dpi) [Default: "
                              "%(default)d]."))
 
+    # The graph type options
     group = parser.add_argument_group("Graph Type Options",
-                                      ("Option for the graph type "
+                                      ("Options for the graph type "
                                        "(two-point, multipoint, etc.)."))
 
     # Use physical position instead of genetic posiition
@@ -679,11 +718,13 @@ def parseArgs():
                        help=("Use physical positions (bp) instead of "
                              "genetic positions (cM)."))
 
+    # Using p values instead of LOD score
     group.add_argument("--use-pvalues", dest='use_pvalues_flag',
                        action="store_true",
                        help=("Use pvalues instead of LOD score. Requires "
                              "to compute -log10(pvalue)."))
 
+    # The graph presentation options
     group = parser.add_argument_group("Graph Presentation Options",
                                       ("Options for the graph presentation "
                                        "(title, axis label, etc.)."))
@@ -760,7 +801,7 @@ def parseArgs():
                              "significant results."))
 
     # The size of the text
-    group.add_argument("--axis_text_size", type=int, default=12, metavar="INT",
+    group.add_argument("--axis-text-size", type=int, default=12, metavar="INT",
                        help="The axis font size [Default: %(default)d]")
 
     group.add_argument("--chr-text-size", type=int, default=12, metavar="INT",
@@ -769,6 +810,7 @@ def parseArgs():
     group.add_argument("--label-text-size", type=int, default=12, metavar="INT",
                        help="The axis font size [Default: %(default)d]")
 
+    # The graph color options
     group = parser.add_argument_group("Graph Colors Options",
                                       "Options for the graph colors.")
 
