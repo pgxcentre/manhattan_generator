@@ -10,7 +10,7 @@ Here are the dependencies that must be installed before _py_megablast_:
 
 *   [Python][1] (>= 2.7, but not 3.0)
 *   [numpy][2] (>= 1.8.0)
-*   [matplotlib[3] (>= 1.3.1)
+*   [matplotlib][3] (>= 1.3.1)
 
 
 
