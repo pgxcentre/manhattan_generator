@@ -591,37 +591,37 @@ def parseArgs():
     ``--dpi``                     Int      The quality of the output (in dpi)
     ``--bp``                      Boolean  Use physical positions (bp) instead
                                            of genetic positions (cM).
-    ``--use_pvalues``             Boolean  Use pvalues instead of LOD score
+    ``--use-pvalues``             Boolean  Use pvalues instead of LOD score
                                            requires to compute
                                            :math:`-log_{10}(pvalue)`
-    ``--no_negative_values``      Boolean  Do not plot negative values
-    ``--max_y_limit``             Float    The maximal Y *value* to plot
-    ``--min_y_limit``             Float    The minimal Y *value* to plot
-    ``--graph_title``             String   The *title* of the graph
-    ``--graph_x_label``           String   The *text* for the x label
-    ``--graph_y_label``           String   The *text* for the y label
-    ``--graph_width``             Int      The *width* of the graph, in
+    ``--no-negative-values``      Boolean  Do not plot negative values
+    ``--max-ylim``                Float    The maximal Y *value* to plot
+    ``--min-ylim``                Float    The minimal Y *value* to plot
+    ``--graph-title``             String   The *title* of the graph
+    ``--graph-xlabel``            String   The *text* for the x label
+    ``--graph-ylabel``            String   The *text* for the y label
+    ``--graph-width``             Int      The *width* of the graph, in
                                            inches
-    ``--graph_height``            Int      The *height* of the graph, in
+    ``--graph-height``            Int      The *height* of the graph, in
                                            inches
-    ``--point_size``              Float    The *size* of each points.
-    ``--significant_point_size``  Float    The *size* of each significant
+    ``--point-size``              Float    The *size* of each points.
+    ``--significant-point-size``  Float    The *size* of each significant
                                            points
     ``--abline``                  String   The y *value* where to create a
                                            horizontal line, separated by a
                                            comma
-    ``--significant_threshold``   Float    The significant threshold for
+    ``--significant-threshold``   Float    The significant threshold for
                                            linkage
-    ``--no_annotation``           Boolean  Do not draw annotation (SNP names)
+    ``--no-annotation``           Boolean  Do not draw annotation (SNP names)
                                            for the significant results
-    ``--chromosome_box_color``    String   The *color* for the box surrounding
+    ``--chromosome-box-color``    String   The *color* for the box surrounding
                                            even chromosome numbers
-    ``--even_chromosome_color``   String   The *color* for the box surrounding
+    ``--even-chromosome-color``   String   The *color* for the box surrounding
                                            even chromosome numbers
-    ``--odd_chromosome_color``    String   The *color* for the box surrounding
+    ``--odd-chromosome-color``    String   The *color* for the box surrounding
                                            odd chromosome numbers
-    ``--multipoint_color``        String   The *color* for the multipoint plot
-    ``--significant_color``       String   The *color* for points representing
+    ``--multipoint-color``        String   The *color* for the multipoint plot
+    ``--significant-color``       String   The *color* for points representing
                                            significant linkage
     ============================  =======  ==========================================
 
@@ -633,9 +633,9 @@ def parseArgs():
 
     """
 
-    group = parser.add_argument_group("Graph Output Options",
-                                      "Option for the ouput file (name of " \
-                                      "the file, type of graph, etc.).")
+    group = parser.add_argument_group("Input Options",
+                                      ("Options for the input file(s) (name of "
+                                       "the file, type of graph, etc.)."))
 
     # The input file (for two point)
     group.add_argument("--twopoint", type=str, metavar="FILE",
@@ -645,153 +645,157 @@ def parseArgs():
     group.add_argument("--multipoint", type=str, metavar="FILE",
                        help="The input FILE for multipoint linkage.")
 
+    group = parser.add_argument_group("Graph Output Options",
+                                      ("Options for the ouput file (name of "
+                                       "the file, type of graph, etc.)."))
+
     # The output file name
     group.add_argument("-o", "--output", dest="outFile_name", type=str,
                        default="manhattan", metavar="NAME",
-                       help="The NAME of the ouput file [Default: " \
-                            "%(default)s].")
+                       help=("The NAME of the ouput file [Default: "
+                             "%(default)s]."))
 
     # The type of the graph (png, ps or pdf)
     group.add_argument("-f", "--format", dest="graph_format", type=str,
                        default="png", metavar="FORMAT",
                        choices=["ps", "pdf", "png"],
-                       help="The FORMAT of the plot (one of 'ps', 'pdf', " \
-                            "'png') [Default: %(default)s].")
+                       help=("The FORMAT of the plot (one of 'ps', 'pdf', "
+                             "'png') [Default: %(default)s]."))
 
     group.add_argument("--web", action="store_true",
                        help=("Always write a PNG file for web display, and "
                              "return the path of the PNG file."))
 
     group.add_argument("--dpi", type=int, default=600, metavar="INT",
-                       help="The quality of the output (in dpi) [Default: " \
-                            "%(default)d].")
+                       help=("The quality of the output (in dpi) [Default: "
+                             "%(default)d]."))
 
     group = parser.add_argument_group("Graph Type Options",
-                                      "Option for the graph type " \
-                                      "(two-point, multipoint, etc.).")
+                                      ("Option for the graph type "
+                                       "(two-point, multipoint, etc.)."))
 
     # Use physical position instead of genetic posiition
     group.add_argument("--bp", dest="phys_pos_flag", action="store_true",
-                       help="Use physical positions (bp) instead of " \
-                            "genetic positions (cM).")
+                       help=("Use physical positions (bp) instead of "
+                             "genetic positions (cM)."))
 
-    group.add_argument("--use_pvalues", dest='use_pvalues_flag',
+    group.add_argument("--use-pvalues", dest='use_pvalues_flag',
                        action="store_true",
-                       help="Use pvalues instead of LOD score. Requires " \
-                            "to compute -log10(pvalue).")
+                       help=("Use pvalues instead of LOD score. Requires "
+                             "to compute -log10(pvalue)."))
 
     group = parser.add_argument_group("Graph Presentation Options",
-                                      "Option for the graph presentation " \
-                                      "(title, axis label, etc.).")
+                                      ("Options for the graph presentation "
+                                       "(title, axis label, etc.)."))
 
     # print negative values
-    group.add_argument("--no_negative_values", action="store_true",
+    group.add_argument("--no-negative-values", action="store_true",
                        help="Do not plot negative values.")
 
     # The maximal y limit of the graph
-    group.add_argument("--max_y_limit", type=float, metavar="FLOAT",
-                       help="The maximal Y value to plot [Default: maximum " \
-                            "of max(LOD) and 1+significant_threshold].")
+    group.add_argument("--max-ylim", type=float, metavar="FLOAT",
+                       help=("The maximal Y value to plot [Default: maximum "
+                             "of max(LOD) and 1+significant-threshold]."))
 
     # The minimal y limit of the graph
-    group.add_argument("--min_y_limit", type=float, default=-2.0,
-                       metavar="FLOAT", help="The minimal Y value to plot " \
-                                             "[Default: %(default).1f].")
+    group.add_argument("--min-ylim", type=float, default=-2.0,
+                       metavar="FLOAT", help=("The minimal Y value to plot "
+                                              "[Default: %(default).1f]."));
 
     # The graph's title
-    group.add_argument("--graph_title", type=str, dest='graph_title',
+    group.add_argument("--graph-title", type=str, dest='graph_title',
                        default="", metavar="TITLE",
                        help="The TITLE of the graph [Default: empty].")
 
     # The graph's x label
-    group.add_argument("--graph_x_label", dest='graph_x_label', type=str,
+    group.add_argument("--graph-xlabel", dest='graph_x_label', type=str,
                        default="Chromosome", metavar="TEXT",
-                       help="The TEXT for the x label. [Default: " \
-                            "%(default)s].")
+                       help=("The TEXT for the x label. [Default: "
+                             "%(default)s]."))
 
     # The graph's y label
-    group.add_argument("--graph_y_label", dest='graph_y_label', type=str,
+    group.add_argument("--graph-ylabel", dest='graph_y_label', type=str,
                        default="LOD", metavar="TEXT",
-                       help="The TEXT for the y label. [Default: " \
-                            "%(default)s].")
+                       help=("The TEXT for the y label. [Default: "
+                             "%(default)s]."))
 
     # The graph width
-    group.add_argument("--graph_width", type=int, default=14, metavar="WIDTH",
-                       help="The WIDTH of the graph, in inches [Default: " \
-                            "%(default)d].")
+    group.add_argument("--graph-width", type=int, default=14, metavar="WIDTH",
+                       help=("The WIDTH of the graph, in inches [Default: "
+                             "%(default)d]."))
 
     # The graph height
-    group.add_argument("--graph_height", type=int, default=7,
+    group.add_argument("--graph-height", type=int, default=7,
                        metavar="HEIGHT",
-                       help="The HEIGHT of the graph, in inches [Default: " \
-                            "%(default)d].")
+                       help=("The HEIGHT of the graph, in inches [Default: "
+                             "%(default)d]."))
 
     # The size of each point
-    group.add_argument("--point_size", type=float, default=2.1,
-                       metavar="SIZE", help="The SIZE of each points " \
-                                            "[Default: %(default).1f].")
+    group.add_argument("--point-size", type=float, default=2.1,
+                       metavar="SIZE", help=("The SIZE of each points "
+                                             "[Default: %(default).1f]."))
 
     # The size of each significant point
-    group.add_argument("--significant_point_size", type=float, default=4.5,
+    group.add_argument("--significant-point-size", type=float, default=4.5,
                        metavar="SIZE",
-                       help="The SIZE of each significant points " \
-                            "[Default: %(default).1f].")
+                       help=("The SIZE of each significant points "
+                             "[Default: %(default).1f]."))
 
     # The ablines positions
     group.add_argument("--abline", type=str, default="3,-2",
                        metavar="POS1,POS2,...",
-                       help="The y value where to create a horizontal " \
-                            "line, separated by a comma [Default: " \
-                            "%(default)s].")
+                       help=("The y value where to create a horizontal "
+                             "line, separated by a comma [Default: "
+                             "%(default)s]."))
 
     # The significant threshold
-    group.add_argument("--significant_threshold", type=float, default=3.0,
+    group.add_argument("--significant-threshold", type=float, default=3.0,
                        metavar="FLOAT",
-                       help="The significant threshold for linkage " \
-                            "[Default: %(default).1f]")
+                       help=("The significant threshold for linkage "
+                             "[Default: %(default).1f]"))
 
     # The annotation flag
-    group.add_argument("--no_annotation", action="store_true",
-                       help="Do not draw annotation (SNP names) for the " \
-                            "significant results.")
+    group.add_argument("--no-annotation", action="store_true",
+                       help=("Do not draw annotation (SNP names) for the "
+                             "significant results."))
 
     # The size of the text
     group.add_argument("--axis_text_size", type=int, default=12, metavar="INT",
                        help="The axis font size [Default: %(default)d]")
 
-    group.add_argument("--chr_text_size", type=int, default=12, metavar="INT",
+    group.add_argument("--chr-text-size", type=int, default=12, metavar="INT",
                        help="The axis font size [Default: %(default)d]")
 
-    group.add_argument("--label_text_size", type=int, default=12, metavar="INT",
+    group.add_argument("--label-text-size", type=int, default=12, metavar="INT",
                        help="The axis font size [Default: %(default)d]")
 
     group = parser.add_argument_group("Graph Colors Options",
-                                      "Option for the graph colors.")
+                                      "Options for the graph colors.")
 
-    group.add_argument("--chromosome_box_color", type=str, default="#E5E5E5",
+    group.add_argument("--chromosome-box-color", type=str, default="#E5E5E5",
                        metavar="COLOR",
-                       help="The COLOR for the box surrounding even " \
-                            "chromosome numbers [Default: %(default)s].")
+                       help=("The COLOR for the box surrounding even "
+                             "chromosome numbers [Default: %(default)s]."))
 
-    group.add_argument("--even_chromosome_color", type=str, default="#1874CD",
+    group.add_argument("--even-chromosome-color", type=str, default="#1874CD",
                        metavar="COLOR",
-                       help="The COLOR for the box surrounding even " \
-                            "chromosome numbers [Default: %(default)s].")
+                       help=("The COLOR for the box surrounding even "
+                             "chromosome numbers [Default: %(default)s]."))
 
-    group.add_argument("--odd_chromosome_color", type=str, default="#4D4D4D",
+    group.add_argument("--odd-chromosome-color", type=str, default="#4D4D4D",
                        metavar="COLOR",
-                       help="The COLOR for the box surrounding odd " \
-                            "chromosome numbers [Default: %(default)s].")
+                       help=("The COLOR for the box surrounding odd "
+                             "chromosome numbers [Default: %(default)s]."))
 
-    group.add_argument("--multipoint_color", type=str, default="#FF8C00",
+    group.add_argument("--multipoint-color", type=str, default="#FF8C00",
                        metavar="COLOR",
-                       help="The COLOR for the multipoint plot [Default: " \
-                            "%(default)s].")
+                       help=("The COLOR for the multipoint plot [Default: "
+                             "%(default)s]."))
 
-    group.add_argument("--significant_color", type=str, default="#FF0000",
+    group.add_argument("--significant-color", type=str, default="#FF0000",
                        metavar="COLOR",
-                       help="The COLOR for points representing " \
-                            "significant linkage [Default: %(default)s].")
+                       help=("The COLOR for points representing "
+                             "significant linkage [Default: %(default)s]."))
 
     args = parser.parse_args()
 
