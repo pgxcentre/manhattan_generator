@@ -17,7 +17,7 @@
 import os
 import sys
 import argparse
-import numpy as npy
+import numpy as np
 
 desc = """This is version 1.0 of manhattan_generator.
 
@@ -256,7 +256,7 @@ def read_input_file(inFileName, use_physical_positions, use_pvalues, options):
     inFile.close()
 
     # Creating the numpy recarray
-    data = npy.array(data, dtype=[("chr", int),
+    data = np.array(data, dtype=[("chr", int),
                                   ("pos", [float, int][use_physical_positions]),
                                   ("name", "a%d" % max([len(i[2]) for i in data])),
                                   ("conf", float)])
@@ -264,7 +264,7 @@ def read_input_file(inFileName, use_physical_positions, use_pvalues, options):
 
     if use_pvalues:
         # We need to transfort the values
-        data["conf"] = -1 * npy.log10(data["conf"])
+        data["conf"] = -1 * np.log10(data["conf"])
 
     return data
 
@@ -300,9 +300,9 @@ def create_manhattan_plot(twopoint, multipoint, args):
     # The available chromosomes
     availableChr = []
     if args.twopoint is not None:
-        availableChr.append(sorted(list(npy.unique(twopoint["chr"]))))
+        availableChr.append(sorted(list(np.unique(twopoint["chr"]))))
     if args.multipoint is not None:
-        availableChr.append(sorted(list(npy.unique(multipoint["chr"]))))
+        availableChr.append(sorted(list(np.unique(multipoint["chr"]))))
     if len(availableChr) == 1:
         availableChr = availableChr[0]
     else:
@@ -327,11 +327,11 @@ def create_manhattan_plot(twopoint, multipoint, args):
     conf_min = [0.0]
     conf_max = []
     if args.twopoint is not None:
-        conf_min.append(npy.min(twopoint["conf"]))
-        conf_max.append(npy.max(twopoint["conf"]))
+        conf_min.append(np.min(twopoint["conf"]))
+        conf_max.append(np.max(twopoint["conf"]))
     if args.multipoint is not None:
-        conf_min.append(npy.min(multipoint["conf"]))
-        conf_max.append(npy.max(multipoint["conf"]))
+        conf_min.append(np.min(multipoint["conf"]))
+        conf_max.append(np.max(multipoint["conf"]))
     conf_min = min(conf_min)
     conf_max = max(conf_max)
     if args.max_ylim is not None:
@@ -370,11 +370,11 @@ def create_manhattan_plot(twopoint, multipoint, args):
         chr_multipoint = None
         maxPos = []
         if args.twopoint is not None:
-            chr_twopoint = twopoint[npy.where(twopoint["chr"] == chromosome)]
-            maxPos.append(npy.max(chr_twopoint["pos"]))
+            chr_twopoint = twopoint[np.where(twopoint["chr"] == chromosome)]
+            maxPos.append(np.max(chr_twopoint["pos"]))
         if args.multipoint is not None:
-            chr_multipoint = multipoint[npy.where(multipoint["chr"] == chromosome)]
-            maxPos.append(npy.max(chr_multipoint["pos"]))
+            chr_multipoint = multipoint[np.where(multipoint["chr"] == chromosome)]
+            maxPos.append(np.max(chr_multipoint["pos"]))
         maxPos = max(maxPos)
 
         # The color of the points
@@ -419,7 +419,7 @@ def create_manhattan_plot(twopoint, multipoint, args):
 
             # If we want annotation
             if not args.no_annotation:
-                for j in npy.where(significantMask)[0]:
+                for j in np.where(significantMask)[0]:
                     # The confidence to write
                     theConf = "%.3f" % chr_twopoint["conf"][j]
                     if args.use_pvalues_flag:
