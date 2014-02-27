@@ -6,7 +6,7 @@
     
     Help creating beautiful graphs of linkage results
     
-    Version: 1.0
+    Version: 1.1
 
     Author: Louis-Philippe Lemieux Perreault
 
@@ -19,7 +19,7 @@ import sys
 import argparse
 import numpy as np
 
-desc = """This is version 1.0 of manhattan_generator.
+desc = """This is version 1.1 of manhattan_generator.
 
 The user needs to specify the type of graph to create (between 'two-point'
 or 'multipoint') with the corresponding options.
@@ -238,9 +238,12 @@ def read_input_file(inFileName, use_physical_positions, use_pvalues, options):
             raise ProgramError(msg)
 
         # Getting the confidence
-        confidence = None
+        confidence = row[headerIndex[[options.col_lod,
+                                      options.col_pvalue][use_pvalues]]]
+        if confidence.upper() == "NA" or confidence.upper() == "NAN":
+            continue
         try:
-            confidence = float(row[headerIndex[[options.col_lod, options.col_pvalue][use_pvalues]]])
+            confidence = float(confidence)
         except ValueError:
             msg = "%s: invalid confidence in %s" % (row[headerIndex[[options.col_lod, options.col_pvalue][use_pvalues]]],
                                                     inFileName)
