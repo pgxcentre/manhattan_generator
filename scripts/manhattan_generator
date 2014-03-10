@@ -6,7 +6,7 @@
     
     Help creating beautiful graphs of linkage results
     
-    Version: 1.1
+    Version: 1.2
 
     Author: Louis-Philippe Lemieux Perreault
 
@@ -19,7 +19,7 @@ import sys
 import argparse
 import numpy as np
 
-desc = """This is version 1.1 of manhattan_generator.
+desc = """This is version 1.2 of manhattan_generator.
 
 The user needs to specify the type of graph to create (between 'two-point'
 or 'multipoint') with the corresponding options.
@@ -225,6 +225,10 @@ def read_input_file(inFileName, use_physical_positions, use_pvalues, options):
 
         # Getting the chromosome
         chromosome = encode_chr(row[headerIndex[options.col_chr]])
+
+        # Do we skip this chromosome?
+        if chromosome in options.exclude_chr:
+            continue
 
         # Getting the position
         position = None
@@ -514,6 +518,7 @@ def encode_chr(chromosome):
         ``XY`` or ``MT``, no :py:class:`ProgramError` is raised.
 
     """
+    chromosome = chromosome.upper()
     if chromosome == 'X':
         return 23
     elif chromosome == 'Y':
@@ -571,6 +576,12 @@ def checkArgs(args):
     except ValueError:
         msg = "%s: not a valid LOD score (must be float)" % args.abline
         raise ProgramError(msg)
+
+    # Checking if there are some chromosome to exclude
+    if args.exclude_chr is None:
+        args.exclude_chr = set()
+    else:
+        args.exclude_chr = {encode_chr(i) for i in args.exclude_chr.split(",")}
     
     return True
 
@@ -712,7 +723,7 @@ def parseArgs():
                              "%(default)d]."))
 
     # The graph type options
-    group = parser.add_argument_group("Graph Type Options",
+    group = parser.add_argument_group("Graph Options",
                                       ("Options for the graph type "
                                        "(two-point, multipoint, etc.)."))
 
@@ -726,6 +737,11 @@ def parseArgs():
                        action="store_true",
                        help=("Use pvalues instead of LOD score. Requires "
                              "to compute -log10(pvalue)."))
+
+    # Exclude some chromosomes
+    group.add_argument("--exclude-chr", metavar="STRING",
+                       help=("Exclude those chromosomes (list of chromosomes, "
+                             "separated by a coma) [Default: None]."))
 
     # The graph presentation options
     group = parser.add_argument_group("Graph Presentation Options",
