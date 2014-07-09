@@ -6,7 +6,7 @@
     
     Help creating beautiful graphs of linkage results
     
-    Version: 1.2
+    Version: 1.3
 
     Author: Louis-Philippe Lemieux Perreault
 
@@ -19,7 +19,7 @@ import sys
 import argparse
 import numpy as np
 
-desc = """This is version 1.2 of manhattan_generator.
+desc = """This is version 1.3 of manhattan_generator.
 
 The user needs to specify the type of graph to create (between 'two-point'
 or 'multipoint') with the corresponding options.
@@ -328,7 +328,6 @@ def create_manhattan_plot(twopoint, multipoint, args):
         msg = "There is no available display, but annotation has been asked for..."
         msg += "\nTry using the --no_annotation option."
         raise ProgramError(msg)
-    figure.subplots_adjust(left=0.05, right=0.99)
 
     # Getting the maximum and minimum of the confidence value
     conf_min = [0.0]
@@ -481,9 +480,10 @@ def create_manhattan_plot(twopoint, multipoint, args):
 
     if args.no_annotation or (args.twopoint is None):
         # Annotation is for two-point only, se we save the figure
-        plt.savefig(args.outFile_name + "." + args.graph_format)
+        plt.savefig(args.outFile_name + "." + args.graph_format,
+                    bbox_inches="tight")
         if args.graph_format != "png":
-            plt.savefig(args.outFile_name + ".png")
+            plt.savefig(args.outFile_name + ".png", bbox_inches="tight")
         if args.web:
             print args.outFile_name + ".png"
 
