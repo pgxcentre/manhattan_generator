@@ -19,7 +19,7 @@ import sys
 import argparse
 import numpy as np
 
-desc = """This is version 1.3 of manhattan_generator.
+desc = """This is version 1.4 of manhattan_generator.
 
 The user needs to specify the type of graph to create (between 'two-point'
 or 'multipoint') with the corresponding options.
@@ -460,7 +460,10 @@ def create_manhattan_plot(twopoint, multipoint, args):
         drs.append(dr)
 
     # Setting the limits
-    ax.set_ylim(conf_min-0.39, conf_max+0.39)
+    padding = 0.39
+    if args.no_y_padding:
+        padding = 0
+    ax.set_ylim(conf_min-padding, conf_max+padding)
     ax.set_xlim(0-chr_spacing, startingPos+chr_spacing)
 
     # Putting the xticklabels
@@ -761,6 +764,10 @@ def parseArgs():
     group.add_argument("--min-ylim", type=float, default=-2.0,
                        metavar="FLOAT", help=("The minimal Y value to plot "
                                               "[Default: %(default).1f]."));
+
+    # Do we want padding?
+    group.add_argument("--no-y-padding", action="store_true",
+                       help="Do not add Y padding to the Y limit")
 
     # The graph's title
     group.add_argument("--graph-title", type=str, dest='graph_title',
