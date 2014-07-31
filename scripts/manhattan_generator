@@ -714,11 +714,12 @@ def parseArgs():
                              "%(default)s]."))
 
     # The type of the graph (png, ps or pdf)
+    format_choices = ["ps", "pdf", "png", "eps"]
     group.add_argument("-f", "--format", dest="graph_format", type=str,
                        default="png", metavar="FORMAT",
-                       choices=["ps", "pdf", "png", "eps"],
-                       help=("The FORMAT of the plot (one of 'ps', 'pdf', "
-                             "'png') [Default: %(default)s]."))
+                       choices=format_choices,
+                       help=("The FORMAT of the plot ({}) [Default: "
+                             "%(default)s].".format(",".join(format_choices))))
 
     group.add_argument("--web", action="store_true",
                        help=("Always write a PNG file for web display, and "
