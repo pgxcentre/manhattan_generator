@@ -6,13 +6,14 @@
     
     Help creating beautiful graphs of linkage results
     
-    Version: 1.3
+    Version: 1.5
 
     Author: Louis-Philippe Lemieux Perreault
 
     Email:  louis-philippe.lemieux.perreault@statgen.org
 
 """
+__version__ = "1.5"
 
 import os
 import sys
@@ -25,6 +26,8 @@ The user needs to specify the type of graph to create (between 'two-point'
 or 'multipoint') with the corresponding options.
 """
 parser = argparse.ArgumentParser(description=desc)
+parser.add_argument("-v", "--version", action="version",
+                    version="%(prog)s {}".format(__version__))
 
 class DraggableAnnotation:
     """Creates draggable annotations for markers."""
@@ -713,7 +716,7 @@ def parseArgs():
     # The type of the graph (png, ps or pdf)
     group.add_argument("-f", "--format", dest="graph_format", type=str,
                        default="png", metavar="FORMAT",
-                       choices=["ps", "pdf", "png"],
+                       choices=["ps", "pdf", "png", "eps"],
                        help=("The FORMAT of the plot (one of 'ps', 'pdf', "
                              "'png') [Default: %(default)s]."))
 
