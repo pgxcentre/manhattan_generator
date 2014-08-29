@@ -56,7 +56,12 @@ class DraggableAnnotation:
         contains, attrd = self.annot.contains(event)
         if not contains:
             return
-        x0, y0 = self.annot.xytext
+        x0, y0 = None, None
+        if not hasattr(self.annot, "xyann"):
+            # Quick fix for a deprecation in annotation...
+            x0, y0 = self.annot.xytext
+        else:
+            x0, y0 = self.annot.xyann
         self.press = x0, y0, event.xdata, event.ydata
         DraggableAnnotation.lock = self
 
@@ -83,7 +88,11 @@ class DraggableAnnotation:
         x0, y0, xpress, ypress = self.press
         dx = event.xdata - xpress
         dy = event.ydata - ypress
-        self.annot.xytext = (x0+dx, y0+dy)
+        if not hasattr(self.annot, "xyann"):
+            # Quick fix for a deprecation in annotation...
+            self.annot.xytext = (x0+dx, y0+dy)
+        else:
+            self.annot.xyann = (x0+dx, y0+dy)
 
         canvas = self.annot.figure.canvas
         axes = self.annot.axes
