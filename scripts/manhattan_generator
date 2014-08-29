@@ -13,7 +13,7 @@
     Email:  louis-philippe.lemieux.perreault@statgen.org
 
 """
-__version__ = "1.5"
+__version__ = "1.6"
 
 import os
 import sys

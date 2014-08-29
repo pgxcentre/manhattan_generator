@@ -17,7 +17,7 @@ if major==3:
     raise SystemExit("""Doesn't work on Python 3...""")
 
 setup(name="manhattan_generator",
-      version="1.5",
+      version="1.6",
       description="Creation of beautiful Manhattan plots",
       author="Louis-Philippe Lemieux Perreault",
       author_email="louis-philippe.lemieux.perreault@statgen.org",
