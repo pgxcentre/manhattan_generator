@@ -6,7 +6,7 @@
     
     Help creating beautiful graphs of linkage results
     
-    Version: 1.5
+    Version: 1.6
 
     Author: Louis-Philippe Lemieux Perreault
 
@@ -20,11 +20,11 @@ import sys
 import argparse
 import numpy as np
 
-desc = """This is version 1.4 of manhattan_generator.
+desc = """This is version {} of manhattan_generator.
 
 The user needs to specify the type of graph to create (between 'two-point'
 or 'multipoint') with the corresponding options.
-"""
+""".format(__version__)
 parser = argparse.ArgumentParser(description=desc)
 parser.add_argument("-v", "--version", action="version",
                     version="%(prog)s {}".format(__version__))
