@@ -19,6 +19,13 @@ import argparse
 import numpy as np
 
 
+__author__ = "Louis-Philippe Lemieux Perreault"
+__copyright__ = "Copyright 2014, Beaulieu-Saucier Pharmacogenomics Centre"
+__credits__ = ["Louis-Philippe Lemieux Perreault"]
+__license__ = "CC BY-NC 4.0"
+__maintainer__ = "Louis-Philippe Lemieux Perreault"
+__email__ = "louis-philippe.lemieux.perreault@statgen.org"
+__status__ = "Development"
 __version__ = "1.6.0"
 
 
