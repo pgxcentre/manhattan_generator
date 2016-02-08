@@ -14,6 +14,7 @@
 
 
 from __future__ import print_function
+from __future__ import division
 
 import os
 import sys
@@ -196,8 +197,8 @@ def read_input_file(i_fn, use_bp, use_p, options):
 
 
     Returns:
-        numpy.recarray:  The array will contain the following names: ``chr``,
-                         ``pos``, ``name`` and ``conf``.
+        pandas.DataFrame:  The array will contain the following names: ``chr``,
+                           ``pos``, ``snp`` and ``conf``.
 
     This function reads any kind of input file, as long as the file is
     tab-separated and that it contains columns with the following headers:
@@ -206,7 +207,7 @@ def read_input_file(i_fn, use_bp, use_p, options):
             Header                           Description
     ======================  ===============================================
     ``chr``                 The name of the chromosome
-    ``name``                The name of the marker
+    ``snp``                 The name of the marker
     ``pos`` or ``cm``       The physical or genetic position (respectively)
     ``lod`` or ``p_value``  The confidence value (either *lod score* or *p
                             value*, respectively)
@@ -238,10 +239,10 @@ def read_input_file(i_fn, use_bp, use_p, options):
     data = data.rename(columns={
         options.col_chr: "chrom",
         options.col_pos if use_bp else options.col_cm: "pos",
-        options.col_name: "name",
+        options.col_name: "snp",
         options.col_pvalue if use_p else options.col_lod: "conf",
     })
-    data = data[["chrom", "pos", "name", "conf"]]
+    data = data[["chrom", "pos", "snp", "conf"]]
 
     # Encoding the chromosomes and extracting required ones
     data["chrom"] = [encode_chr(chrom) for chrom in data.chrom]
@@ -258,14 +259,12 @@ def read_input_file(i_fn, use_bp, use_p, options):
 def create_manhattan_plot(twopoint, multipoint, args):
     """Creates the manhattan plot from marker data.
 
-    :param twopoint: the two point data (``None`` if not available).
-    :type twopoint: :py:class:`numpy.recarray`
-
-    :param multipoint: the multipoint data (``None`` if not available).
-    :type multipoint: :py:class:`numpy.recarray`
-
-    :param args: the options and arguments of the program.
-    :type args: :py:class:`Namespace` from :py:mod:`argparse`
+    Args:
+        twopoint (pandas.DataFrame): the two point data
+                                     (``None`` if not available).
+        multipoint (pandas.DataFrame): the multipoint data
+                                       (``None`` if not available).
+        args (argparse.Namespace): the options and arguments of the program.
 
     Creates manhattan plots from two point or multipoint data. Two point
     results are shown in a manhattan plot using points (different color for
@@ -284,19 +283,18 @@ def create_manhattan_plot(twopoint, multipoint, args):
         plt.ioff()
 
     # The available chromosomes
-    availableChr = []
+    available_chrom = []
     if args.twopoint is not None:
-        availableChr.append(sorted(list(np.unique(twopoint["chr"]))))
+        available_chrom.append(sorted(twopoint.chrom.unique()))
     if args.multipoint is not None:
-        availableChr.append(sorted(list(np.unique(multipoint["chr"]))))
-    if len(availableChr) == 1:
-        availableChr = availableChr[0]
+        available_chrom.append(sorted(multipoint.chrom.unique()))
+    if len(available_chrom) == 1:
+        available_chrom = available_chrom[0]
     else:
-        if availableChr[0] != availableChr[1]:
-            msg = "missing chromsoome in either twopoint or multipoint data"
-            raise ProgramError(msg)
-        availableChr = availableChr[0]
-    availableChr = map(int, availableChr)
+        if available_chrom[0] != available_chrom[1]:
+            raise ProgramError("chromosomes are not the same for twopoint and "
+                               "multipoint data")
+        available_chrom = available_chrom[0]
 
     # Creating the figure
     figure = None
@@ -304,19 +302,19 @@ def create_manhattan_plot(twopoint, multipoint, args):
         figure = plt.figure(figsize=(args.graph_width, args.graph_height),
                             frameon=True)
     except TclError:
-        msg = ("There is no available display, but annotation has been asked "
-               "for...\nTry using the --no_annotation option.")
-        raise ProgramError(msg)
+        raise ProgramError("There is no available display, but annotation has "
+                           "been asked for... Try using the --no_annotation "
+                           "option.")
 
     # Getting the maximum and minimum of the confidence value
     conf_min = [0.0]
     conf_max = []
     if args.twopoint is not None:
-        conf_min.append(np.min(twopoint["conf"]))
-        conf_max.append(np.max(twopoint["conf"]))
+        conf_min.append(twopoint.conf.min())
+        conf_max.append(twopoint.conf.max())
     if args.multipoint is not None:
-        conf_min.append(np.min(multipoint["conf"]))
-        conf_max.append(np.max(multipoint["conf"]))
+        conf_min.append(multipoint.conf.min())
+        conf_max.append(multipoint.conf.max())
     conf_min = min(conf_min)
     conf_max = max(conf_max)
     if args.max_ylim is not None:
@@ -327,7 +325,9 @@ def create_manhattan_plot(twopoint, multipoint, args):
         conf_min = 0.0
 
     # The chromosome spacing
-    chr_spacing = [25.0, 25000000][args.phys_pos_flag]
+    chrom_spacing = 25.0
+    if args.phys_pos_flag:
+        chrom_spacing = 25000000
 
     # Creating the ax and modify it
     ax = figure.add_subplot(111)
@@ -350,49 +350,47 @@ def create_manhattan_plot(twopoint, multipoint, args):
                  weight="bold")
 
     # Now plotting for each of the chromosome
-    startingPos = 0
+    starting_pos = 0
     annots = []
     ticks = []
-    for i, chromosome in enumerate(availableChr):
-        chr_twopoint = None
+    for i, chrom in enumerate(available_chrom):
+        chrom_twopoint = None
         chr_multipoint = None
-        maxPos = []
+        max_pos = []
         if args.twopoint is not None:
-            chr_twopoint = twopoint[np.where(twopoint["chr"] == chromosome)]
-            maxPos.append(np.max(chr_twopoint["pos"]))
+            chrom_twopoint = twopoint[twopoint.chrom == chrom]
+            max_pos.append(chrom_twopoint.pos.max())
         if args.multipoint is not None:
-            chr_multipoint = multipoint[
-                np.where(multipoint["chr"] == chromosome)
-            ]
-            maxPos.append(np.max(chr_multipoint["pos"]))
-        maxPos = max(maxPos)
+            chr_multipoint = multipoint[multipoint.chrom == chrom]
+            max_pos.append(chr_multipoint.pos.max())
+        max_pos = max(max_pos)
 
         # The color of the points
-        color = [args.even_chromosome_color,
-                 args.odd_chromosome_color][i % 2 == 0]
+        color = args.even_chromosome_color
+        if i % 2 == 0:
+            color = args.odd_chromosome_color
         multipoint_color = color
 
         # The box
-        xmin = startingPos - (chr_spacing/2.0)
-        xmax = maxPos+startingPos + (chr_spacing/2.0)
+        xmin = starting_pos - (chrom_spacing / 2)
+        xmax = max_pos + starting_pos + (chrom_spacing / 2)
         if i % 2 == 1:
             ax.axvspan(xmin=xmin, xmax=xmax, color=args.chromosome_box_color)
 
         # The chromosome label
-        ticks.append((xmin+xmax)/2.0)
+        ticks.append((xmin + xmax) / 2)
 
         # Plotting the twopoint
         if args.twopoint is not None:
-            ax.plot(chr_twopoint["pos"] + startingPos, chr_twopoint["conf"],
-                    marker="o", ms=args.point_size, mfc=color,
-                    mec=color, ls="None")
+            ax.plot(chrom_twopoint.pos + starting_pos, chrom_twopoint.conf,
+                    marker="o", ms=args.point_size, mfc=color, mec=color,
+                    ls="None")
             multipoint_color = args.multipoint_color
 
         # Plotting the multipoint
         if args.multipoint is not None:
-            ax.plot(chr_multipoint["pos"] + startingPos,
-                    chr_multipoint["conf"], ls="-", color=multipoint_color,
-                    lw=1.2)
+            ax.plot(chr_multipoint.pos + starting_pos, chr_multipoint.conf,
+                    ls="-", color=multipoint_color, lw=1.2)
 
         # Plotting the abline
         for abline_position in args.abline:
@@ -402,30 +400,29 @@ def create_manhattan_plot(twopoint, multipoint, args):
 
         # Plotting the significant markers
         if args.twopoint is not None:
-            sigMask = chr_twopoint["conf"] >= args.significant_threshold
-            ax.plot(chr_twopoint["pos"][sigMask] + startingPos,
-                    chr_twopoint["conf"][sigMask], marker="o",
-                    ls="None", ms=args.significant_point_size,
-                    mfc=args.significant_color, mec=args.significant_color)
+            sig_mask = chrom_twopoint.conf >= args.significant_threshold
+            ax.plot(chrom_twopoint.pos[sig_mask] + starting_pos,
+                    chrom_twopoint.conf[sig_mask], marker="o", ls="None",
+                    ms=args.significant_point_size, mfc=args.significant_color,
+                    mec=args.significant_color)
 
             # If we want annotation
             if not args.no_annotation:
-                for j in np.where(sigMask)[0]:
+                for m_index, m in chrom_twopoint[sig_mask].iterrows():
                     # The confidence to write
-                    theConf = "%.3f" % chr_twopoint["conf"][j]
+                    the_conf = "{:.3f}".format(m.conf)
                     if args.use_pvalues_flag:
-                        theConf = str(10**(-1*chr_twopoint["conf"][j]))
+                        the_conf = str(10 ** (-1 * m.conf))
 
                     # The label of the annotation
-                    label = "\n".join([chr_twopoint["name"][j], theConf])
+                    label = "\n".join([m.snp, the_conf])
 
                     annot = ax.annotate(
                         label,
-                        xy=(chr_twopoint["pos"][j]+startingPos,
-                            chr_twopoint["conf"][j]),
+                        xy=(m.pos + starting_pos, m.conf),
                         xycoords="data",
                         size=10,
-                        xytext=(chr_twopoint["pos"][j]+startingPos, conf_max),
+                        xytext=(m.pos + starting_pos, conf_max),
                         va="center",
                         bbox=dict(boxstyle="round", fc="white", ec="black"),
                         textcoords="data",
@@ -434,9 +431,9 @@ def create_manhattan_plot(twopoint, multipoint, args):
                     annots.append(annot)
 
         # Changing the starting point for the next chromosome
-        startingPos = maxPos + startingPos + chr_spacing
+        starting_pos = max_pos + starting_pos + chrom_spacing
 
-    # Make them draggable
+    # Make the annotation draggable
     drs = []
     for annot in annots:
         dr = DraggableAnnotation(annot)
@@ -447,12 +444,12 @@ def create_manhattan_plot(twopoint, multipoint, args):
     padding = 0.39
     if args.no_y_padding:
         padding = 0
-    ax.set_ylim(conf_min-padding, conf_max+padding)
-    ax.set_xlim(0-chr_spacing, startingPos+chr_spacing)
+    ax.set_ylim(conf_min - padding, conf_max + padding)
+    ax.set_xlim(0 - chrom_spacing, starting_pos + chrom_spacing)
 
     # Putting the xticklabels
     ax.set_xticks(ticks)
-    ax.set_xticklabels(availableChr)
+    ax.set_xticklabels(available_chrom)
 
     for tick in ax.yaxis.get_major_ticks():
         tick.label.set_fontsize(args.axis_text_size)
