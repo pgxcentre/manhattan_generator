@@ -342,12 +342,9 @@ def create_manhattan_plot(twopoint, multipoint, args):
     if args.use_pvalues_flag:
         ax.set_ylabel(r'$-\log_{10}$ (p value)', fontsize=args.label_text_size)
     else:
-        ax.set_ylabel(unicode(args.graph_y_label, "utf-8"),
-                      fontsize=args.label_text_size)
-    ax.set_xlabel(unicode(args.graph_x_label, "utf-8"),
-                  fontsize=args.label_text_size)
-    ax.set_title(unicode(args.graph_title, "utf-8"), fontsize=16,
-                 weight="bold")
+        ax.set_ylabel(args.graph_y_label, fontsize=args.label_text_size)
+    ax.set_xlabel(args.graph_x_label, fontsize=args.label_text_size)
+    ax.set_title(args.graph_title, fontsize=16, weight="bold")
 
     # Now plotting for each of the chromosome
     starting_pos = 0
@@ -528,9 +525,6 @@ def check_args(args):
         args (argparse.Namespace): a :py:class:`Namespace` object containing
                                    the options of the program.
 
-    Returns:
-        bool: ``True`` if everything was OK, ``False`` otherwise.
-
     If there is a problem with an option, an exception is raised using the
     :py:class:`ProgramError` class, a message is printed to the
     :class:`sys.stderr` and the program exists with code 1.
@@ -571,7 +565,13 @@ def check_args(args):
     else:
         args.exclude_chr = {encode_chr(i) for i in args.exclude_chr.split(",")}
 
-    return True
+    # Checking the graph title for unicode (python2)
+    try:
+        args.graph_title = unicode(args.graph_title, "utf-8")
+        args.graph_x_label = unicode(args.graph_x_label, "utf-8")
+        args.graph_y_label = unicode(args.graph_y_label, "utf-8")
+    except NameError:
+        pass
 
 
 def parse_args():
