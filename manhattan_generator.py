@@ -1,11 +1,9 @@
-#!/usr/bin/env python2.7
-# -*- coding: utf-8 -*-
 """
     manhattan_generator
     ~~~~~~~~~~~~~~~~~~~
-    
+
     Help creating beautiful graphs of linkage results
-    
+
     Version: 1.6
 
     Author: Louis-Philippe Lemieux Perreault
@@ -13,12 +11,16 @@
     Email:  louis-philippe.lemieux.perreault@statgen.org
 
 """
-__version__ = "1.6"
+
 
 import os
 import sys
 import argparse
 import numpy as np
+
+
+__version__ = "1.6.0"
+
 
 desc = """This is version {} of manhattan_generator.
 
@@ -29,9 +31,11 @@ parser = argparse.ArgumentParser(description=desc)
 parser.add_argument("-v", "--version", action="version",
                     version="%(prog)s {}".format(__version__))
 
+
 class DraggableAnnotation:
     """Creates draggable annotations for markers."""
     lock = None  # only one can be animated at a time
+
     def __init__(self, annot):
         """Creates an annotation which is draggable."""
         self.annot = annot
@@ -129,7 +133,7 @@ class DraggableAnnotation:
 
 class ProgramError(Exception):
     """An :py:class:`Exception` raised in case of a problem.
-    
+
     :param msg: the message to print to the user before exiting.
     :type msg: string
 
@@ -172,7 +176,7 @@ def main():
 
 def read_input_file(inFileName, use_physical_positions, use_pvalues, options):
     """Reads input file.
-    
+
     :param inFileName: the name of the input file
     :type inFileName: string
 
@@ -188,7 +192,7 @@ def read_input_file(inFileName, use_physical_positions, use_pvalues, options):
 
     This function reads any kind of input file, as long as the file is
     tab-separated and that it contains columns with the following headers:
-    
+
     ======================  ===============================================
             Header                           Description
     ======================  ===============================================
@@ -245,12 +249,17 @@ def read_input_file(inFileName, use_physical_positions, use_pvalues, options):
         # Getting the position
         position = None
         try:
-            position = map([float, int][use_physical_positions],
-                           [row[headerIndex[[options.col_cm,
-                                             options.col_pos][use_physical_positions]]]])[0]
+            position = map(
+                [float, int][use_physical_positions],
+                [row[headerIndex[[options.col_cm,
+                                  options.col_pos][use_physical_positions]]]]
+            )[0]
         except ValueError:
-            msg = "%s: invalid position in %s" % (row[headerIndex[[options.col_cm, options.col_pos][use_physical_positions]]],
-                                                  inFileName)
+            msg = "%s: invalid position in %s" % (
+                row[headerIndex[[options.col_cm,
+                                 options.col_pos][use_physical_positions]]],
+                inFileName,
+            )
             raise ProgramError(msg)
 
         # Getting the confidence
@@ -261,8 +270,11 @@ def read_input_file(inFileName, use_physical_positions, use_pvalues, options):
         try:
             confidence = float(confidence)
         except ValueError:
-            msg = "%s: invalid confidence in %s" % (row[headerIndex[[options.col_lod, options.col_pvalue][use_pvalues]]],
-                                                    inFileName)
+            msg = "%s: invalid confidence in %s" % (
+                row[headerIndex[[options.col_lod,
+                                 options.col_pvalue][use_pvalues]]],
+                inFileName,
+            )
             raise ProgramError(msg)
 
         # Getting the marker name
@@ -275,10 +287,13 @@ def read_input_file(inFileName, use_physical_positions, use_pvalues, options):
     inFile.close()
 
     # Creating the numpy recarray
-    data = np.array(data, dtype=[("chr", int),
-                                  ("pos", [float, int][use_physical_positions]),
-                                  ("name", "a%d" % max([len(i[2]) for i in data])),
-                                  ("conf", float)])
+    data = np.array(
+        data,
+        dtype=[("chr", int),
+               ("pos", [float, int][use_physical_positions]),
+               ("name", "a%d" % max([len(i[2]) for i in data])),
+               ("conf", float)],
+    )
     data.sort(order=["chr", "pos"])
 
     if use_pvalues:
@@ -337,8 +352,8 @@ def create_manhattan_plot(twopoint, multipoint, args):
         figure = plt.figure(figsize=(args.graph_width, args.graph_height),
                             frameon=True)
     except TclError:
-        msg = "There is no available display, but annotation has been asked for..."
-        msg += "\nTry using the --no_annotation option."
+        msg = ("There is no available display, but annotation has been asked "
+               "for...\nTry using the --no_annotation option.")
         raise ProgramError(msg)
 
     # Getting the maximum and minimum of the confidence value
@@ -358,7 +373,7 @@ def create_manhattan_plot(twopoint, multipoint, args):
         conf_min = args.min_ylim
     if args.no_negative_values or args.use_pvalues_flag:
         conf_min = 0.0
-        
+
     # The chromosome spacing
     chr_spacing = [25.0, 25000000][args.phys_pos_flag]
 
@@ -375,9 +390,12 @@ def create_manhattan_plot(twopoint, multipoint, args):
     if args.use_pvalues_flag:
         ax.set_ylabel(r'$-\log_{10}$ (p value)', fontsize=args.label_text_size)
     else:
-        ax.set_ylabel(unicode(args.graph_y_label, "utf-8"), fontsize=args.label_text_size)
-    ax.set_xlabel(unicode(args.graph_x_label, "utf-8"), fontsize=args.label_text_size)
-    ax.set_title(unicode(args.graph_title, "utf-8"), fontsize=16, weight="bold")
+        ax.set_ylabel(unicode(args.graph_y_label, "utf-8"),
+                      fontsize=args.label_text_size)
+    ax.set_xlabel(unicode(args.graph_x_label, "utf-8"),
+                  fontsize=args.label_text_size)
+    ax.set_title(unicode(args.graph_title, "utf-8"), fontsize=16,
+                 weight="bold")
 
     # Now plotting for each of the chromosome
     startingPos = 0
@@ -391,18 +409,21 @@ def create_manhattan_plot(twopoint, multipoint, args):
             chr_twopoint = twopoint[np.where(twopoint["chr"] == chromosome)]
             maxPos.append(np.max(chr_twopoint["pos"]))
         if args.multipoint is not None:
-            chr_multipoint = multipoint[np.where(multipoint["chr"] == chromosome)]
+            chr_multipoint = multipoint[
+                np.where(multipoint["chr"] == chromosome)
+            ]
             maxPos.append(np.max(chr_multipoint["pos"]))
         maxPos = max(maxPos)
 
         # The color of the points
-        color = [args.even_chromosome_color, args.odd_chromosome_color][i%2==0]
+        color = [args.even_chromosome_color,
+                 args.odd_chromosome_color][i % 2 == 0]
         multipoint_color = color
 
         # The box
         xmin = startingPos - (chr_spacing/2.0)
         xmax = maxPos+startingPos + (chr_spacing/2.0)
-        if i%2 == 1:
+        if i % 2 == 1:
             ax.axvspan(xmin=xmin, xmax=xmax, color=args.chromosome_box_color)
 
         # The chromosome label
@@ -412,7 +433,7 @@ def create_manhattan_plot(twopoint, multipoint, args):
         if args.twopoint is not None:
             ax.plot(chr_twopoint["pos"] + startingPos, chr_twopoint["conf"],
                     marker="o", ms=args.point_size, mfc=color,
-                    mec=color,ls="None")
+                    mec=color, ls="None")
             multipoint_color = args.multipoint_color
 
         # Plotting the multipoint
@@ -429,15 +450,15 @@ def create_manhattan_plot(twopoint, multipoint, args):
 
         # Plotting the significant markers
         if args.twopoint is not None:
-            significantMask = chr_twopoint["conf"] >= args.significant_threshold
-            ax.plot(chr_twopoint["pos"][significantMask] + startingPos,
-                    chr_twopoint["conf"][significantMask], marker="o",
+            sigMask = chr_twopoint["conf"] >= args.significant_threshold
+            ax.plot(chr_twopoint["pos"][sigMask] + startingPos,
+                    chr_twopoint["conf"][sigMask], marker="o",
                     ls="None", ms=args.significant_point_size,
                     mfc=args.significant_color, mec=args.significant_color)
 
             # If we want annotation
             if not args.no_annotation:
-                for j in np.where(significantMask)[0]:
+                for j in np.where(sigMask)[0]:
                     # The confidence to write
                     theConf = "%.3f" % chr_twopoint["conf"][j]
                     if args.use_pvalues_flag:
@@ -446,23 +467,22 @@ def create_manhattan_plot(twopoint, multipoint, args):
                     # The label of the annotation
                     label = "\n".join([chr_twopoint["name"][j], theConf])
 
-                    annot = ax.annotate(label,
-                                        xy=(chr_twopoint["pos"][j]+startingPos,
-                                            chr_twopoint["conf"][j]),
-                                        xycoords="data", size=10,
-                                        xytext=(chr_twopoint["pos"][j]+startingPos,
-                                                conf_max),
-                                        va="center",
-                                        bbox=dict(boxstyle="round",
-                                                  fc="white", ec="black"),
-                                        textcoords="data",
-                                        arrowprops=dict(arrowstyle="->",
-                                                        shrinkA=6, shrinkB=5))
+                    annot = ax.annotate(
+                        label,
+                        xy=(chr_twopoint["pos"][j]+startingPos,
+                            chr_twopoint["conf"][j]),
+                        xycoords="data",
+                        size=10,
+                        xytext=(chr_twopoint["pos"][j]+startingPos, conf_max),
+                        va="center",
+                        bbox=dict(boxstyle="round", fc="white", ec="black"),
+                        textcoords="data",
+                        arrowprops=dict(arrowstyle="->", shrinkA=6, shrinkB=5),
+                    )
                     annots.append(annot)
 
         # Changing the starting point for the next chromosome
         startingPos = maxPos + startingPos + chr_spacing
-
 
     # Make them draggable
     drs = []
@@ -597,20 +617,20 @@ def checkArgs(args):
         args.exclude_chr = set()
     else:
         args.exclude_chr = {encode_chr(i) for i in args.exclude_chr.split(",")}
-    
+
     return True
 
 
 def parseArgs():
     """Parses the command line options and arguments.
-    
+
     :returns: A :py:class:`numpy.Namespace` object created by the
               :py:mod:`argparse` module. It contains the values of the
               different options.
 
-    ============================  =======  ==========================================
+    ============================  =======  ====================================
          Options                   Type                   Description
-    ============================  =======  ==========================================
+    ============================  =======  ====================================
     ``--twopoint``                File     The input *file* for two-point
                                            linkage
     ``--multipoint``              File     The input *file* for multipoint
@@ -653,7 +673,7 @@ def parseArgs():
     ``--multipoint-color``        String   The *color* for the multipoint plot
     ``--significant-color``       String   The *color* for points representing
                                            significant linkage
-    ============================  =======  ==========================================
+    ============================  =======  ====================================
 
     .. note::
 
@@ -664,9 +684,11 @@ def parseArgs():
     """
 
     # The input options
-    group = parser.add_argument_group("Input Options",
-                                      ("Options for the input file(s) (name of "
-                                       "the file, type of graph, etc.)."))
+    group = parser.add_argument_group(
+        "Input Options",
+        "Options for the input file(s) (name of the file, type of graph, "
+        "etc.).",
+    )
 
     # The input file (for two point)
     group.add_argument("--twopoint", type=str, metavar="FILE",
@@ -775,8 +797,8 @@ def parseArgs():
 
     # The minimal y limit of the graph
     group.add_argument("--min-ylim", type=float, default=-2.0,
-                       metavar="FLOAT", help=("The minimal Y value to plot "
-                                              "[Default: %(default).1f]."));
+                       metavar="FLOAT", help="The minimal Y value to plot "
+                                             "[Default: %(default).1f].")
 
     # Do we want padding?
     group.add_argument("--no-y-padding", action="store_true",
@@ -846,8 +868,9 @@ def parseArgs():
     group.add_argument("--chr-text-size", type=int, default=12, metavar="INT",
                        help="The axis font size [Default: %(default)d]")
 
-    group.add_argument("--label-text-size", type=int, default=12, metavar="INT",
-                       help="The axis font size [Default: %(default)d]")
+    group.add_argument("--label-text-size", type=int, default=12,
+                       metavar="INT", help="The axis font size "
+                                           "[Default: %(default)d]")
 
     # The graph color options
     group = parser.add_argument_group("Graph Colors Options",
