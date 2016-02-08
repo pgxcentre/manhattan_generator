@@ -26,7 +26,7 @@ def setup_package():
                 "manhattan_generator=manhattan_generator:safe_main",
             ],
         },
-        py_modules=["cli"],
+        py_modules=["manhattan_generator"],
         install_requires=["matplotlib >=1.3.1", "numpy >= 1.8.0",
                           "pandas >= 0.17.0"],
         classifiers=[
