@@ -27,7 +27,8 @@ def setup_package():
             ],
         },
         py_modules=["cli"],
-        install_requires=["matplotlib >=1.3.1", "numpy >= 1.8.0"],
+        install_requires=["matplotlib >=1.3.1", "numpy >= 1.8.0",
+                          "pandas >= 0.17.0"],
         classifiers=[
             "Operating System :: Linux",
             "Programming Language :: Python",
