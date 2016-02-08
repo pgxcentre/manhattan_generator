@@ -480,22 +480,25 @@ def create_manhattan_plot(twopoint, multipoint, args):
 def encode_chr(chromosome):
     """Encode a chromosome in integer format.
 
-    :param chromosome: the chromosome to encode in integer.
-    :type chromosome: string
+    Args:
+        chromosome (str): the chromosome to encode in integer.
 
-    :returns: the chromosome encoded in integer instead of string.
+    Returns:
+        int: the chromosome encoded in integer instead of string.
 
     This function encodes sex chromosomes, pseudo-autosomal regions and
     mitochondrial chromosomes in 23, 24, 25 and 26, respectively. If the
     chromosome is none of the above, the function returns the integer
     representation of the chromosome, if possible.
 
-    .. note::
+    Note
+    ----
 
         If the chromosome is invalid, a :py:class:`ProgramError` will be
         raised, and the program terminated.
 
-    .. warning::
+    Warning
+    -------
 
         No check is done whether the chromosome is higher than 26 and below 1.
         As long as the chromosome is an integer or equal to ``X``, ``Y``,
@@ -521,11 +524,12 @@ def encode_chr(chromosome):
 def check_args(args):
     """Checks the arguments and options.
 
-    :param args: a :py:class:`Namespace` object containing the options of the
-                 program.
-    :type args: :py:class:`argparse.Namespace`
+    Args:
+        args (argparse.Namespace): a :py:class:`Namespace` object containing
+                                   the options of the program.
 
-    :returns: ``True`` if everything was OK, ``False`` otherwise.
+    Returns:
+        bool: ``True`` if everything was OK, ``False`` otherwise.
 
     If there is a problem with an option, an exception is raised using the
     :py:class:`ProgramError` class, a message is printed to the
@@ -573,9 +577,9 @@ def check_args(args):
 def parse_args():
     """Parses the command line options and arguments.
 
-    :returns: A :py:class:`numpy.Namespace` object created by the
-              :py:mod:`argparse` module. It contains the values of the
-              different options.
+    Returns:
+    argparse.Namespace: An object created by the :py:mod:`argparse` module. It
+                        contains the values of the different options.
 
     ============================  =======  ====================================
          Options                   Type                   Description
@@ -624,7 +628,8 @@ def parse_args():
                                            significant linkage
     ============================  =======  ====================================
 
-    .. note::
+    Note
+    ----
 
         No option check is done here (except for the one automatically done
         by :py:mod:`argparse`. Those need to be done elsewhere
