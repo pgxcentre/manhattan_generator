@@ -13,8 +13,11 @@
 """
 
 
+from __future__ import print_function
+
 import os
 import sys
+import logging
 import argparse
 import numpy as np
 
@@ -29,14 +32,13 @@ __status__ = "Development"
 __version__ = "1.6.0"
 
 
-desc = """This is version {} of manhattan_generator.
-
-The user needs to specify the type of graph to create (between 'two-point'
-or 'multipoint') with the corresponding options.
-""".format(__version__)
-parser = argparse.ArgumentParser(description=desc)
-parser.add_argument("-v", "--version", action="version",
-                    version="%(prog)s {}".format(__version__))
+# Logging configuration
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s %(name)s %(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger("manhattan-generator")
 
 
 class DraggableAnnotation:
@@ -527,7 +529,7 @@ def create_manhattan_plot(twopoint, multipoint, args):
         if args.graph_format != "png":
             plt.savefig(args.outFile_name + ".png", bbox_inches="tight")
         if args.web:
-            print args.outFile_name + ".png"
+            print(args.outFile_name + ".png")
 
     else:
         # There is some two-point data and annotation is asked, se we show
@@ -689,6 +691,15 @@ def parseArgs():
         (see :py:func:`checkArgs`).
 
     """
+
+    desc = """This is version {} of manhattan_generator.
+
+    The user needs to specify the type of graph to create (between 'two-point'
+    or 'multipoint') with the corresponding options.
+    """.format(__version__)
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument("-v", "--version", action="version",
+                        version="%(prog)s {}".format(__version__))
 
     # The input options
     group = parser.add_argument_group(
@@ -913,11 +924,18 @@ def parseArgs():
     return args
 
 
-if __name__ == "__main__":
+def safe_main():
+    """A main function that catches errors."""
     try:
         main()
+
     except KeyboardInterrupt:
         print >>sys.stderr, "Cancelled by user"
         sys.exit(0)
+
     except ProgramError as e:
-        parser.error(e.message)
+        logger.critical(e.message)
+
+
+if __name__ == "__main__":
+    safe_main()

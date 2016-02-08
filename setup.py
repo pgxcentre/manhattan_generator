@@ -23,7 +23,7 @@ def setup_package():
         license="CC BY-NC 4.0",
         entry_points={
             "console_scripts": [
-                "manhattan_generator=manhattan_generator:main",
+                "manhattan_generator=manhattan_generator:safe_main",
             ],
         },
         py_modules=["cli"],
