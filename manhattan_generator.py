@@ -19,7 +19,9 @@ import os
 import sys
 import logging
 import argparse
+
 import numpy as np
+import pandas as pd
 
 
 __author__ = "Louis-Philippe Lemieux Perreault"
@@ -164,8 +166,8 @@ class ProgramError(Exception):
 def main():
     """The main method of the program."""
     # Getting and checking the options
-    args = parseArgs()
-    checkArgs(args)
+    args = parse_args()
+    check_args(args)
 
     # Reading the input file for two point linkage
     two_point = None
@@ -183,21 +185,19 @@ def main():
     create_manhattan_plot(two_point, multi_point, args)
 
 
-def read_input_file(inFileName, use_physical_positions, use_pvalues, options):
+def read_input_file(i_fn, use_bp, use_p, options):
     """Reads input file.
 
-    :param inFileName: the name of the input file
-    :type inFileName: string
+    Args:
+        i_fn (str): the name of the input file.
+        use_bp (bool): use physical position (bp) rather than genetic position?
+        use_p (bool): use *p values* instead of *lod score*?
+        options (argparse.Namespace): the options.
 
-    :param use_physical_positions: use physical position (bp) rather than
-                                   genetic position (cM)?
-    :type use_physical_positions: boolean
 
-    :param use_pvalues: use *p values* instead of *lod score*?
-    :type use_pvalues: boolean
-
-    :returns: a :py:class:`numpy.recarray` with the following names: ``chr``,
-              ``pos``, ``name`` and ``conf``.
+    Returns:
+        numpy.recarray:  The array will contain the following names: ``chr``,
+                         ``pos``, ``name`` and ``conf``.
 
     This function reads any kind of input file, as long as the file is
     tab-separated and that it contains columns with the following headers:
@@ -212,104 +212,47 @@ def read_input_file(inFileName, use_physical_positions, use_pvalues, options):
                             value*, respectively)
     ======================  ===============================================
 
-    .. note::
+    Note
+    ----
 
         If there is a problem while reading the input file(s),
         a :py:class:`ProgramError` will be raised, and the program will be
         terminated.
 
     """
-    # The type of the data
-    inFile = open(inFileName, 'r')
+    # Reading the data
+    data = pd.read_csv(i_fn, sep="\t", low_memory=False)
 
-    # The data of the file
-    data = []
+    # Checking we have the required column
+    required_cols = {options.col_chr, options.col_name,
+                     options.col_pos if use_bp else options.col_cm,
+                     options.col_pvalue if use_p else options.col_lod}
+    same_col = required_cols & set(data.columns)
+    if same_col != required_cols:
+        raise ProgramError("{}: missing columns {}".format(
+            i_fn,
+            ", ".join(required_cols - same_col),
+        ))
 
-    headerIndex = {}
-    for line_nb, line in enumerate(inFile):
-        row = line.rstrip("\r\n").split("\t")
+    # Renaming the columns
+    data = data.rename(columns={
+        options.col_chr: "chrom",
+        options.col_pos if use_bp else options.col_cm: "pos",
+        options.col_name: "name",
+        options.col_pvalue if use_p else options.col_lod: "conf",
+    })
+    data = data[["chrom", "pos", "name", "conf"]]
 
-        if line_nb == 0:
-            # This is the header
-            headerIndex = dict([(colName, i) for i, colName in enumerate(row)])
-            colNames = [options.col_chr, options.col_name]
-            if use_physical_positions:
-                colNames.append(options.col_pos)
-            else:
-                colNames.append(options.col_cm)
-            if use_pvalues:
-                colNames.append(options.col_pvalue)
-            else:
-                colNames.append(options.col_lod)
-            for colName in colNames:
-                if colName not in headerIndex:
-                    msg = "%(inFileName)s: no column named " \
-                          "%(colName)s" % locals()
-                    raise ProgramError(msg)
-            continue
+    # Encoding the chromosomes and extracting required ones
+    data["chrom"] = [encode_chr(chrom) for chrom in data.chrom]
+    data = data[~data.chrom.isin(options.exclude_chr)]
 
-        # Getting the chromosome
-        chromosome = encode_chr(row[headerIndex[options.col_chr]])
+    # If p values, we modify
+    if use_p:
+        data["conf"] = -1 * np.log10(data.conf)
 
-        # Do we skip this chromosome?
-        if chromosome in options.exclude_chr:
-            continue
-
-        # Getting the position
-        position = None
-        try:
-            position = map(
-                [float, int][use_physical_positions],
-                [row[headerIndex[[options.col_cm,
-                                  options.col_pos][use_physical_positions]]]]
-            )[0]
-        except ValueError:
-            msg = "%s: invalid position in %s" % (
-                row[headerIndex[[options.col_cm,
-                                 options.col_pos][use_physical_positions]]],
-                inFileName,
-            )
-            raise ProgramError(msg)
-
-        # Getting the confidence
-        confidence = row[headerIndex[[options.col_lod,
-                                      options.col_pvalue][use_pvalues]]]
-        if confidence.upper() == "NA" or confidence.upper() == "NAN":
-            continue
-        try:
-            confidence = float(confidence)
-        except ValueError:
-            msg = "%s: invalid confidence in %s" % (
-                row[headerIndex[[options.col_lod,
-                                 options.col_pvalue][use_pvalues]]],
-                inFileName,
-            )
-            raise ProgramError(msg)
-
-        # Getting the marker name
-        name = row[headerIndex[options.col_name]]
-
-        # Appending the data
-        data.append((chromosome, position, name, confidence))
-
-    # Closing the input file
-    inFile.close()
-
-    # Creating the numpy recarray
-    data = np.array(
-        data,
-        dtype=[("chr", int),
-               ("pos", [float, int][use_physical_positions]),
-               ("name", "a%d" % max([len(i[2]) for i in data])),
-               ("conf", float)],
-    )
-    data.sort(order=["chr", "pos"])
-
-    if use_pvalues:
-        # We need to transfort the values
-        data["conf"] = -1 * np.log10(data["conf"])
-
-    return data
+    # Ordering and returning
+    return data.sort_values(by=["chrom", "pos"])
 
 
 def create_manhattan_plot(twopoint, multipoint, args):
@@ -578,7 +521,7 @@ def encode_chr(chromosome):
         raise ProgramError(msg)
 
 
-def checkArgs(args):
+def check_args(args):
     """Checks the arguments and options.
 
     :param args: a :py:class:`Namespace` object containing the options of the
@@ -630,7 +573,7 @@ def checkArgs(args):
     return True
 
 
-def parseArgs():
+def parse_args():
     """Parses the command line options and arguments.
 
     :returns: A :py:class:`numpy.Namespace` object created by the
@@ -688,7 +631,7 @@ def parseArgs():
 
         No option check is done here (except for the one automatically done
         by :py:mod:`argparse`. Those need to be done elsewhere
-        (see :py:func:`checkArgs`).
+        (see :py:func:`check_args`).
 
     """
     # Creating the parser object
