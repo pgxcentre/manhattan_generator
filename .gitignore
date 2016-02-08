@@ -1,3 +1,5 @@
-dist
-*.egg-info
+*.pyc
 *.swp
+dist
+build
+*.egg-info
