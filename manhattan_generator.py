@@ -502,18 +502,20 @@ def encode_chr(chromosome):
         ``XY`` or ``MT``, no :py:class:`ProgramError` is raised.
 
     """
-    chromosome = chromosome.upper()
-    if chromosome == 'X':
-        return 23
-    elif chromosome == 'Y':
-        return 24
-    elif chromosome == 'XY':
-        return 25
-    elif chromosome == 'MT':
-        return 26
     try:
         return int(chromosome)
+
     except ValueError:
+        chromosome = chromosome.upper()
+        if chromosome == 'X':
+            return 23
+        elif chromosome == 'Y':
+            return 24
+        elif chromosome == 'XY':
+            return 25
+        elif chromosome == 'MT':
+            return 26
+
         msg = "%(chromosome)s: not a valid chromosome" % locals()
         raise ProgramError(msg)
 
@@ -932,7 +934,7 @@ def safe_main():
         main()
 
     except KeyboardInterrupt:
-        print >>sys.stderr, "Cancelled by user"
+        print("Cancelled by user", file=sys.stderr)
         sys.exit(0)
 
     except ProgramError as e:
