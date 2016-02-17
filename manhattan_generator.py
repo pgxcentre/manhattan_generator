@@ -4,7 +4,7 @@
 
     Help creating beautiful graphs of linkage results
 
-    Version: 1.7.0
+    Version: 1.7.1
 
     Author: Louis-Philippe Lemieux Perreault
 
@@ -32,7 +32,7 @@ __license__ = "CC BY-NC 4.0"
 __maintainer__ = "Louis-Philippe Lemieux Perreault"
 __email__ = "louis-philippe.lemieux.perreault@statgen.org"
 __status__ = "Development"
-__version__ = "1.7.0"
+__version__ = "1.7.1"
 
 
 # Logging configuration
