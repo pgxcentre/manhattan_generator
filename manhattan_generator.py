@@ -222,7 +222,10 @@ def read_input_file(i_fn, use_bp, use_p, options):
 
     """
     # Reading the data
-    data = pd.read_csv(i_fn, sep="\t", low_memory=False)
+    csv_iterator = pd.read_csv(i_fn, sep="\t", chunksize=1e6)
+    data = next(csv_iterator).dropna()
+    for chunk in csv_iterator:
+        data = data.append(chunk.dropna(), ignore_index=True)
 
     # Checking we have the required column
     required_cols = {options.col_chr, options.col_name,
