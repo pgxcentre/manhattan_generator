@@ -145,3 +145,31 @@ Graph Colors Options:
                         The COLOR for points representing significant linkage
                         [Default: #FF0000].
 ```
+
+
+## Example
+
+As an example, we used the dataset publicly provided by Wood *et al.* 2014 (doi: [10.1038/ng.3097](http://dx.doi.org/10.1038/ng.3097)], as
+part of the GIANT consortium for height (available
+[here](https://portals.broadinstitute.org/collaboration/giant/index.php/GIANT_consortium_data_files#GWAS_Anthropometric_2014_Height)).
+
+```bash
+manhattan_generator \
+    --twopoint ../data/GIANT_HEIGHT_Wood_et_al_2014_publicrelease_HapMapCeuFreq.grch37.txt \
+    --col-chr Chromosome \
+    --col-name MarkerName \
+    --col-pos Position \
+    --col-pvalue p \
+    --bp \
+    --use-pvalues \
+    --abline 95 \
+    --significant-threshold 95 \
+    --no-annotation \
+    --significant-point-size 2 \
+    --point-size 1 \
+    --graph-title "GIANT height (Wood et al. 2014, public release)" \
+    --chr-text-size 10 \
+    --exclude-chr 23,24
+```
+
+<img src=https://raw.github.com/pgxcentre/manhattan_generator/master/example_giant.png width=728 />
