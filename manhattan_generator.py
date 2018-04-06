@@ -222,7 +222,7 @@ def read_input_file(i_fn, use_bp, use_p, options):
 
     """
     # Reading the data
-    csv_iterator = pd.read_csv(i_fn, sep="\t", chunksize=1e6)
+    csv_iterator = pd.read_csv(i_fn, sep="\t", chunksize=1e6, low_memory=False)
     data = next(csv_iterator).dropna()
     for chunk in csv_iterator:
         data = data.append(chunk.dropna(), ignore_index=True)
@@ -278,10 +278,16 @@ def create_manhattan_plot(twopoint, multipoint, args):
 
     """
     import matplotlib as mpl
-    from _tkinter import TclError
     if args.no_annotation:
         mpl.use("Agg")
-    import matplotlib.pyplot as plt
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError:
+        raise ProgramError("Could not import matplotlib. The most common "
+                           "cause is that there is no available display, but "
+                           "annotation has been asked for... Try using the "
+                           "--no_annotation option.")
+
     if args.no_annotation:
         plt.ioff()
 
@@ -301,13 +307,8 @@ def create_manhattan_plot(twopoint, multipoint, args):
 
     # Creating the figure
     figure = None
-    try:
-        figure = plt.figure(figsize=(args.graph_width, args.graph_height),
-                            frameon=True)
-    except TclError:
-        raise ProgramError("There is no available display, but annotation has "
-                           "been asked for... Try using the --no_annotation "
-                           "option.")
+    figure = plt.figure(figsize=(args.graph_width, args.graph_height),
+                        frameon=True)
 
     # Getting the maximum and minimum of the confidence value
     conf_min = [0.0]
