@@ -247,9 +247,14 @@ def read_input_file(i_fn, use_bp, use_p, options):
     })
     data = data[["chrom", "pos", "snp", "conf"]]
 
-    # Encoding the chromosomes and extracting required ones
+    # Encoding the chromosomes
     data["chrom"] = [encode_chr(chrom) for chrom in data.chrom]
-    data = data[~data.chrom.isin(options.exclude_chr)]
+
+    # Keeping only the required chromosome
+    if options.only_chr is not None:
+        data = data.loc[data.chrom == options.only_chr, :]
+    else:
+        data = data[~data.chrom.isin(options.exclude_chr)]
 
     # If p values, we modify
     if use_p:
@@ -341,8 +346,9 @@ def create_manhattan_plot(twopoint, multipoint, args):
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.spines["bottom"].set_visible(False)
-    ax.set_xticks([])
-    ax.set_xticklabels([])
+    if args.only_chr is None:
+        ax.set_xticks([])
+        ax.set_xticklabels([])
     if args.use_pvalues_flag:
         ax.set_ylabel(r'$-\log_{10}$ (p value)', fontsize=args.label_text_size)
     else:
@@ -449,8 +455,9 @@ def create_manhattan_plot(twopoint, multipoint, args):
     ax.set_xlim(0 - chrom_spacing, starting_pos + chrom_spacing)
 
     # Putting the xticklabels
-    ax.set_xticks(ticks)
-    ax.set_xticklabels(available_chrom)
+    if args.only_chr is None:
+        ax.set_xticks(ticks)
+        ax.set_xticklabels(available_chrom)
 
     for tick in ax.yaxis.get_major_ticks():
         tick.label.set_fontsize(args.axis_text_size)
@@ -565,11 +572,19 @@ def check_args(args):
         msg = "%s: not a valid LOD score (must be float)" % args.abline
         raise ProgramError(msg)
 
+    # Checking that only one of --exclude-chr or --only-chr is used
+    if args.exclude_chr is not None and args.only_chr is not None:
+        msg = "Use only one of '--exclude-chr' or '--only-chr'"
+        raise ProgramError(msg)
+
     # Checking if there are some chromosome to exclude
     if args.exclude_chr is None:
         args.exclude_chr = set()
     else:
         args.exclude_chr = {encode_chr(i) for i in args.exclude_chr.split(",")}
+
+    if args.only_chr is not None:
+        args.only_chr = encode_chr(args.only_chr)
 
     # Checking the graph title for unicode (python2)
     try:
@@ -779,6 +794,11 @@ def parse_args():
         "--exclude-chr", metavar="STRING",
         help="Exclude those chromosomes (list of chromosomes, separated by a "
              "coma) [Default: None].",
+    )
+    group.add_argument(
+        "--only-chr", metavar="CHR",
+        help="Print only the results for a single chromosome. The xaxis will "
+             "hence show the positions/cm instead of the chromosome number.",
     )
 
     # The graph presentation options
