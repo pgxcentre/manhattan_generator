@@ -9,7 +9,7 @@
 from setuptools import setup
 
 
-VERSION = "1.7.3"
+VERSION = "1.7.4"
 
 
 def setup_package():
