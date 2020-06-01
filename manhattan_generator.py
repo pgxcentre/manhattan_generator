@@ -294,7 +294,6 @@ def create_manhattan_plot(twopoint, multipoint, args):
                            "--no_annotation option.")
 
     if args.no_annotation:
-        print('Donot use annotation')
         plt.ioff()
 
     # The available chromosomes
