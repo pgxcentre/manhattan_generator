@@ -414,28 +414,32 @@ def create_manhattan_plot(twopoint, multipoint, args):
                     mec=args.significant_color)
 
             # If we want annotation
+            count=0
             if not args.no_annotation:
-                for m_index, m in chrom_twopoint[sig_mask].iterrows():
+                chr_sig_snp = chrom_twopoint[sig_mask]
+                chr_sig_snp = chr_sig_snp.sort_values(['conf'],ascending=False)
+                for m_index, m in chr_sig_snp.iterrows():
                     # The confidence to write
                     the_conf = "{:.3f}".format(m.conf)
                     if args.use_pvalues_flag:
                         the_conf = str(10 ** (-1 * m.conf))
 
                     # The label of the annotation
-                    label = "\n".join([m.snp, the_conf])
+                    label = m.snp#"\n".join([m.snp, the_conf])
 
                     annot = ax.annotate(
                         label,
                         xy=(m.pos + starting_pos, m.conf),
                         xycoords="data",
-                        size=10,
-                        xytext=(m.pos + starting_pos, conf_max),
+                        size=7,
+                        xytext=(m.pos + starting_pos+50000000, conf_max-count*0.33),
                         va="center",
-                        bbox=dict(boxstyle="round", fc="white", ec="black"),
+                        bbox=dict(boxstyle="round", fc="white", alpha=0.4),
                         textcoords="data",
-                        arrowprops=dict(arrowstyle="->", shrinkA=6, shrinkB=5),
+                        arrowprops=dict(arrowstyle="->",connectionstyle=mpl.patches.ConnectionStyle("Arc3, rad=0.15"),color='grey',alpha=0.6),
                     )
                     annots.append(annot)
+                    count +=1
 
         # Changing the starting point for the next chromosome
         starting_pos = max_pos + starting_pos + chrom_spacing
@@ -482,7 +486,12 @@ def create_manhattan_plot(twopoint, multipoint, args):
     else:
         # There is some two-point data and annotation is asked, se we show
         # the figure
-        plt.show()
+        plt.savefig(args.outFile_name + "." + args.graph_format,
+                    bbox_inches="tight")
+        if args.graph_format != "png":
+            plt.savefig(args.outFile_name + ".png", bbox_inches="tight")
+        if args.web:
+            print(args.outFile_name + ".png")
 
 
 def encode_chr(chromosome):
@@ -636,7 +645,7 @@ def parse_args():
                                            comma
     ``--significant-threshold``   Float    The significant threshold for
                                            linkage
-    ``--no-annotation``           Boolean  Do not draw annotation (SNP names)
+    ``--no_annotation``           Boolean  Do not draw annotation (SNP names)
                                            for the significant results
     ``--chromosome-box-color``    String   The *color* for the box surrounding
                                            even chromosome numbers
@@ -893,7 +902,7 @@ def parse_args():
 
     # The annotation flag
     group.add_argument(
-        "--no-annotation", action="store_true",
+        "--no_annotation", action="store_true",
         help="Do not draw annotation (SNP names) for the significant results.",
     )
 

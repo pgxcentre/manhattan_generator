@@ -173,3 +173,4 @@ manhattan_generator \
 ```
 
 <img src=https://raw.github.com/pgxcentre/manhattan_generator/master/example_giant.png width=728 />
+<img src=https://raw.github.com/Jiashun-Xiao/manhattan_generator/master/example_annotation.png width=728 />
